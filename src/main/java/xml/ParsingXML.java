@@ -14,7 +14,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import java.util.List;
 
 public class ParsingXML {
 
-    public List<Plant> parsing(File file, Catalog catalog) throws ParserConfigurationException, IOException, SAXException{
+    public List<Plant> parsing(File file, Catalog catalog) throws ParserConfigurationException, IOException, SAXException {
 
         List<Plant> list = new ArrayList<>();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -45,7 +44,13 @@ public class ParsingXML {
                         switch (elementChild.getNodeName()) {
                             case "COMMON" -> plant.setCommon(elementChild.getTextContent());
                             case "BOTANICAL" -> plant.setBotanical(elementChild.getTextContent());
-                            case "ZONE" -> plant.setZone(Integer.parseInt(elementChild.getTextContent()));
+                            case "ZONE" -> {
+                                if (elementChild.getTextContent().equalsIgnoreCase("годичный")) {
+                                    plant.setZone(1);
+                                } else {
+                                    plant.setZone(Integer.parseInt(elementChild.getTextContent()));
+                                }
+                            }
                             case "LIGHT" -> plant.setLight(elementChild.getTextContent());
                             case "PRICE" -> plant.setPrice(new BigDecimal(elementChild.getTextContent().substring(1)));
                             case "AVAILABILITY" ->

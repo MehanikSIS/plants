@@ -8,32 +8,27 @@ import xml.ParsingXML;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.text.ParseException;
+import java.sql.*;
 import java.util.List;
 
 
 public class DAO {
 
-    public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException{
-        for (String fileName : args) {
-            File file = new File(fileName);
-            ParsingXML parsingXML = new ParsingXML();
-            Catalog catalog = new Catalog();
-            List<Plant> plants = parsingXML.parsing(file, catalog);
-            Connection c;
-            Statement stmt;
-            try {
-
-                c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/plant", "postgres", "root");
-                System.out.println("Opened database successfully");
+    public static void main(String[] args) throws ParserConfigurationException, SAXException {
+        Connection c;
+        Statement stmt;
+        try {
+            c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/plant", "postgres", "root");
+            System.out.println("Opened database successfully");
+            for (String fileName : args) {
+                File file = new File(fileName);
+                ParsingXML parsingXML = new ParsingXML();
+                Catalog catalog = new Catalog();
+                List<Plant> plants = parsingXML.parsing(file, catalog);
                 stmt = c.createStatement();
                 stmt.executeUpdate("INSERT INTO d_cat_catalog (delivery_date,company,uuid) VALUES ('"
                         + catalog.getDate()
-                        + "+00', '"
+                        + "', '"
                         + catalog.getCompany() + "', '"
                         + catalog.getUuid() + "' );");
                 for (Plant plant : plants) {
@@ -48,14 +43,14 @@ public class DAO {
                             + plant.getPrice() + "', '"
                             + plant.getAvailability() + "', '"
                             + catalog_id + "');");
-
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println(e.getClass().getName() + ": " + e.getMessage());
-                System.exit(0);
-
+                System.out.println(file.getName() + " uploaded to database");
             }
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            System.exit(0);
+
         }
 
     }

@@ -23,13 +23,21 @@ public class DAO {
             InputStream input = new FileInputStream("src/main/resources/config.properties");
             prop.load(input);
             Connection connection = DriverManager.getConnection(prop.getProperty("urlDataBase"), prop.getProperty("user"), prop.getProperty("password"));
-            Statement stmt = connection.createStatement();
             System.out.println("Opened database successfully");
+            Statement stmt = connection.createStatement();
+            PreparedStatement ps;
             for (String fileName : args) {
                 File file = new File(fileName);
                 ParsingXML parsingXML = new ParsingXML();
                 Catalog catalog = new Catalog();
                 List<Plant> plants = parsingXML.parsing(file, catalog);
+                ps = connection.prepareStatement("select 1 from d_cat_catalog where uuid = ?");
+                ps.setString(1, catalog.getUuid());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {                                                    // проверка на наличие каталога в БД по UUID
+                    System.out.println("this directory is already loaded");
+                    break;
+                }
                 stmt.executeUpdate("INSERT INTO d_cat_catalog (delivery_date,company,uuid) VALUES ('"
                         + catalog.getDate()
                         + "', '"
@@ -47,8 +55,11 @@ public class DAO {
                             + plant.getPrice() + "', '"
                             + plant.getAvailability() + "', '"
                             + catalog_id + "');");
+                    resultSet.close();
                 }
                 System.out.println(file.getName() + " uploaded to database");
+                rs.close();
+                ps.close();
             }
             stmt.close();
             connection.close();
@@ -59,4 +70,6 @@ public class DAO {
             System.exit(0);
         }
     }
+
+
 }
